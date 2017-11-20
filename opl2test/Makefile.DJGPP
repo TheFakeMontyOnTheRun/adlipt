@@ -1,0 +1,19 @@
+CXXFLAGS = -DVERSION=20171119
+
+CXX = i586-pc-msdosdjgpp-g++
+
+OBJS = main.o \
+    OPL2.o \
+    demotune.o \
+    timer.o
+
+TARGET = OPL2TEST.EXE
+
+
+$(TARGET):	$(OBJS)
+	$(CXX) -o $(TARGET) $(OBJS)
+
+all:	$(TARGET)
+
+clean:
+	rm -f $(OBJS) $(TARGET)
