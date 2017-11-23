@@ -1,6 +1,14 @@
 #include <stdlib.h>
 #include <conio.h>
+
+#ifndef __DJGPP__
 #include <i86.h>
+#else
+#include <dos.h>
+#include <sys/farptr.h>
+#include <go32.h>
+#endif
+
 #include "OPL2.h"
 #include "demotune.h"
 
@@ -10,7 +18,11 @@
 
 short get_lpt_port(int i)
 {
-  return *(short __far *)MK_FP(0x40, 6 + 2*i);
+#ifndef __DJGPP__
+    return *(short __far *)MK_FP(0x40, 6 + 2*i);
+#else
+    return _farpeekw(_dos_ds, 0x0408 + ( 2 * (i - 1)) );
+#endif
 }
 
 short setup(void)

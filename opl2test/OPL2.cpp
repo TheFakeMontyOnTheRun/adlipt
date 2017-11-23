@@ -30,6 +30,9 @@
 /**
  * Hacked into a OPL2PRN test program by pdewacht@gmail.com.
  */
+#ifdef __DJGPP__
+#include <pc.h>
+#endif
 
 #include <conio.h>
 #include "OPL2.h"
@@ -103,14 +106,20 @@ void OPL2::write(byte reg, byte data) {
 	outp(lpt_ctrl, PP_NOT_SELECT | PP_NOT_STROBE);
 	outp(lpt_ctrl, PP_NOT_SELECT | PP_NOT_STROBE | PP_INIT);
 	for (int i = 0; i < 6; i++) {
-		(volatile) inp(lpt_ctrl);
+#ifndef __DJGPP__
+		(volatile)
+#endif
+        inp(lpt_ctrl);
 	}
 	outp(lpt_data, data);
 	outp(lpt_ctrl, PP_NOT_SELECT | PP_INIT);
 	outp(lpt_ctrl, PP_NOT_SELECT);
 	outp(lpt_ctrl, PP_NOT_SELECT | PP_INIT);
 	for (int i = 0; i < 35; i++) {
-		(volatile) inp(lpt_ctrl);
+#ifndef __DJGPP__
+        (volatile)
+#endif
+        inp(lpt_ctrl);
 	}
 
 #endif

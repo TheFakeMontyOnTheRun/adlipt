@@ -1,6 +1,6 @@
 CXXFLAGS = -DVERSION=20171119
 
-CXX = i586-pc-msdosdjgpp-g++
+CXX = i586-pc-msdosdjgpp-g++ -Wno-narrowing
 
 OBJS = main.o \
     OPL2.o \
