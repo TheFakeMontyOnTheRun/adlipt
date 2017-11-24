@@ -108,6 +108,8 @@ void OPL2::write(byte reg, byte data) {
 	for (int i = 0; i < 6; i++) {
 #ifndef __DJGPP__
 		(volatile)
+#else
+        volatile int x =
 #endif
         inp(lpt_ctrl);
 	}
@@ -118,6 +120,8 @@ void OPL2::write(byte reg, byte data) {
 	for (int i = 0; i < 35; i++) {
 #ifndef __DJGPP__
         (volatile)
+#else
+        volatile int x =
 #endif
         inp(lpt_ctrl);
 	}

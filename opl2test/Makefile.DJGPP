@@ -1,13 +1,13 @@
 CXXFLAGS = -DVERSION=20171119
 
-CXX = i586-pc-msdosdjgpp-g++ -Wno-narrowing
+CXX = i586-pc-msdosdjgpp-g++ -Wno-narrowing -fpermissive
 
 OBJS = main.o \
     OPL2.o \
     demotune.o \
     timer.o
 
-TARGET = OPL2TEST.EXE
+TARGET = opl2test.exe
 
 
 $(TARGET):	$(OBJS)

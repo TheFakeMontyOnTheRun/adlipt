@@ -10,6 +10,13 @@
 #include <bios.h>
 #include <time.h>
 #include <unistd.h>
+
+#define LOCK_VARIABLE(x)    _go32_dpmi_lock_data((void *)&x,(long)sizeof(x));
+#define LOCK_FUNCTION(x)    _go32_dpmi_lock_code(x,(long)sizeof(x));
+
+#define TIMER 0x1C
+ _go32_dpmi_seginfo OldISR, NewISR;
+
 #endif
 
 #include <dos.h>
@@ -26,37 +33,25 @@ static unsigned timer_sum;
 #ifndef __DJGPP
 void __interrupt __far timer_handler()
 #else
-long ms;
-long timeToSleep = 0;
 void timer_handler()
 #endif
 {
-#ifndef __DJGPP
     unsigned old_sum = timer_sum;
 
     ++timer_ticks;
 
     timer_sum += timer_counter;
 
+
     if (timer_sum < old_sum) {
+#ifndef __DJGPP
     _chain_intr(prev_timer_handler);
+#else
+        _go32_dpmi_chain_protected_mode_interrupt_vector(TIMER,&OldISR);
+#endif
   } else {
     outp(0x20, 0x20);
   }
-#else
-
-    auto t0 = uclock();
-    usleep( 12500 );
-    auto t1 = uclock();
-    ms = (t1 - t0) / UCLOCKS_PER_SEC;
-    ++timer_ticks;
-    timeToSleep -= ms;
-    if ( timeToSleep <= 0 ) {
-
-        timer_sum += timer_counter;
-        timeToSleep = ms;
-    }
-#endif
 }
 
 void timer_setup(unsigned frequency)
@@ -75,7 +70,20 @@ void timer_setup(unsigned frequency)
   outp(0x40, timer_counter >> 8);
   _enable();
 #else
-  ms = 1000000 / frequency;
+    LOCK_FUNCTION(timer_handler);
+    LOCK_VARIABLE(timer_ticks);
+    LOCK_VARIABLE(timer_sum);
+
+  _go32_dpmi_get_protected_mode_interrupt_vector(TIMER, &OldISR);
+  NewISR.pm_offset = (int)timer_handler;
+  NewISR.pm_selector = _go32_my_cs();
+ _go32_dpmi_chain_protected_mode_interrupt_vector(TIMER,&NewISR);
+
+  disable();
+  outp(0x43, 0x34);
+  outp(0x40, timer_counter & 256);
+  outp(0x40, timer_counter >> 8);
+  enable();
 #endif
 }
 
@@ -89,6 +97,8 @@ void timer_shutdown()
   _enable();
 
   _dos_setvect(0x1C, prev_timer_handler);
+#else
+    _go32_dpmi_set_protected_mode_interrupt_vector(TIMER,&OldISR);
 #endif
 }
 
@@ -99,13 +109,14 @@ unsigned long timer_get() {
   result = timer_ticks;
   _enable();
 #else
-  result = timer_ticks;
+    disable();
+    result = timer_ticks;
+    enable();
 #endif
   return result;
 }
 
 #ifdef __DJGPP
 void hlt() {
-  timer_handler();
 }
 #endif
