@@ -26,18 +26,26 @@
 static void (__interrupt __far *prev_timer_handler)();
 #endif
 
+#ifndef __DJGPP
+static volatile unsigned int timer_ticks;
+static unsigned short timer_counter;
+static unsigned short timer_sum;
+
+void __interrupt __far timer_handler()
+#else
+
 static volatile unsigned long timer_ticks;
 static unsigned timer_counter;
 static unsigned timer_sum;
 
-#ifndef __DJGPP
-void __interrupt __far timer_handler()
-#else
 void timer_handler()
 #endif
 {
+#ifndef __DJGPP
     unsigned old_sum = timer_sum;
-
+#else
+    unsigned short old_sum = timer_sum;
+#endif
     ++timer_ticks;
 
     timer_sum += timer_counter;
@@ -54,7 +62,7 @@ void timer_handler()
   }
 }
 
-void timer_setup(unsigned frequency)
+void timer_setup(unsigned short frequency)
 {
   timer_ticks = 0;
   timer_counter = 0x1234DD / frequency;
