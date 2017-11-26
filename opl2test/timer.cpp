@@ -14,7 +14,7 @@
 #define LOCK_VARIABLE(x)    _go32_dpmi_lock_data((void *)&x,(long)sizeof(x));
 #define LOCK_FUNCTION(x)    _go32_dpmi_lock_code(x,(long)sizeof(x));
 
-#define TIMER 0x1C
+#define TIMER 0x8
  _go32_dpmi_seginfo OldISR, NewISR;
 
 #endif
@@ -61,8 +61,8 @@ void timer_setup(unsigned frequency)
   timer_sum = 0;
 
 #ifndef __DJGPP
-  prev_timer_handler = _dos_getvect(0x1C);
-  _dos_setvect(0x1C, timer_handler);
+  prev_timer_handler = _dos_getvect(0x8);
+  _dos_setvect(0x8, timer_handler);
 
   _disable();
   outp(0x43, 0x34);
@@ -96,7 +96,7 @@ void timer_shutdown()
   outp(0x40, 0);
   _enable();
 
-  _dos_setvect(0x1C, prev_timer_handler);
+  _dos_setvect(0x8, prev_timer_handler);
 #else
     _go32_dpmi_set_protected_mode_interrupt_vector(TIMER,&OldISR);
 #endif
